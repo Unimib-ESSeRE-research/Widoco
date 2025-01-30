@@ -27,6 +27,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.zip.ZipEntry;
@@ -208,6 +209,17 @@ public class WidocoUtils {
 			fileName = fileName.substring((folderName + JAR_SEPARATOR).length());
 
 			File file = new File(destFolder + File.separator + fileName);
+
+			// AFTER REFACTORING
+			//*******************************+ */
+			String canonicalDestinationPath = file.getCanonicalPath();
+
+			if (!canonicalDestinationPath.startsWith(destFolder.getCanonicalPath())) {
+				// Security check to avoid writing outside the destination folder
+				zis.close();
+				throw new IOException("Entry is outside of the target dir: " + fileName);
+			}
+			//***************************** */
 
 			if (fileName.isEmpty() || fileName.charAt(fileName.length() - 1) == JAR_SEPARATOR) {
 				// Skip empty or directory entries
